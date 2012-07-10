@@ -6,4 +6,4 @@
  * @author orga.chem.job@gmail.com (Orga Chem)
  */
 
-goog.provide('ui.scaffolding');
+goog.provide('clover.ui.scaffolding');
