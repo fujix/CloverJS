@@ -7,9 +7,11 @@
  */
 
 goog.provide('clover.ui.scaffolding.AbstractLayout');
-goog.require('goog.dom.ViewSizeMonitor');
+goog.require('goog.dom.ViewportSizeMonitor');
 goog.require('goog.events.EventHandler');
+goog.require('goog.events.EventType');
 goog.require('goog.ui.Component');
+goog.require('goog.ui.registry');
 
 
 
@@ -29,7 +31,8 @@ clover.ui.scaffolding.AbstractLayout = function(opt_renderer, opt_domHelper) {
       goog.ui.registry.getDefaultRenderer(this.constructor);
 
   /** @private */
-  this.vsm_ = goog.dom.ViewSizeMonitor.getInstanceForWindow(dom.getWindow());
+  this.vsm_ = goog.dom.ViewportSizeMonitor.getInstanceForWindow(
+      dom.getWindow());
 
   /** @private */
   this.listener_ = new goog.events.EventHandler(this);
@@ -115,7 +118,7 @@ clover.ui.scaffolding.AbstractLayout.prototype.handleResize = function() {
       this.currentScreenType_ !== (type = this.getScreenType())) {
     this.currentScreenType_ = type;
     var e = clover.ui.scaffolding.AbstractLayout.EventType.CHANGE_SCREEN_TYPE;
-    this.dispathEvent(e);
+    this.dispatchEvent(e);
   }
 };
 
@@ -162,7 +165,7 @@ clover.ui.scaffolding.AbstractLayout.prototype.enterDocument = function() {
   goog.base(this, 'enterDocument');
   this.listener_.listen(
       this.vsm_,
-      clover.ui.scaffolding.AbstractLayout.EventType.CHANGE_SCREEN_TYPE,
+      goog.events.EventType.RESIZE,
       this.handleResize);
 };
 

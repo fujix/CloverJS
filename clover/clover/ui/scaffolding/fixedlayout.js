@@ -11,7 +11,7 @@ goog.provide('clover.ui.scaffolding.FixedLayout');
 goog.provide('clover.ui.scaffolding.FixedLayoutRenderer');
 goog.require('clover.ui.scaffolding.AbstractLayout');
 goog.require('clover.ui.scaffolding.AbstractLayoutRenderer');
-
+goog.require('goog.ui.registry');
 
 
 /**
@@ -24,7 +24,8 @@ goog.require('clover.ui.scaffolding.AbstractLayoutRenderer');
  * @extends {clover.ui.scaffolding.AbstractLayout}
  */
 clover.ui.scaffolding.FixedLayout = function(opt_renderer, opt_domHelper) {
-  goog.base(this, opt_renderer, opt_domHelper);
+  goog.base(this, opt_renderer ||
+      clover.ui.scaffolding.FixedLayoutRenderer.getInstance(), opt_domHelper);
 };
 goog.inherits(clover.ui.scaffolding.FixedLayout,
     clover.ui.scaffolding.AbstractLayout);
@@ -88,3 +89,11 @@ clover.ui.scaffolding.FixedLayoutRenderer.prototype.getCssClass =
     function() {
   return clover.ui.scaffolding.FixedLayoutRenderer.CSS_CLASS;
 };
+
+
+// Register a decorator factory function for FixedLayout
+goog.ui.registry.setDecoratorByClassName(
+    clover.ui.scaffolding.FixedLayoutRenderer.CSS_CLASS,
+    function() {
+      return new clover.ui.scaffolding.FixedLayout(null);
+    });

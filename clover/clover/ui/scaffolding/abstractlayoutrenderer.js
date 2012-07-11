@@ -45,10 +45,9 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.getCssClass =
  * @param {clover.ui.AbstractLayout} layout Layout to render.
  * @return {Element} Root element for the layout.
  */
-clover.ui.LayoutRenderer.prototype.createDom = function(layout) {
+clover.ui.scaffolding.AbstractLayoutRenderer.prototype.createDom = function(
+    layout) {
   var element = layout.getDomHelper().createDom('div', this.getCssClass());
-
-  this.setAriaStates(layout, element);
   return element;
 };
 
