@@ -2,20 +2,19 @@
 // http://orgachem.mit-license.org
 
 /**
- * @fileoverview Script for Abstracr class of Layout.
+ * @fileoverview Script for Abstracr class of GridRow.
  * @author orga.chem.job@gmail.com (Orga Chem)
  */
 
-goog.provide('clover.ui.scaffolding.AbstractLayoutRenderer');
-goog.require('goog.ui.registry');
+goog.provide('clover.ui.scaffolding.AbstractGridRowRenderer');
 
 
 
 /**
- * Abstract Renderer class for Layout.
+ * Abstract Renderer class for GridRow.
  * @constructor
  */
-clover.ui.scaffolding.AbstractLayoutRenderer = function() {
+clover.ui.scaffolding.AbstractGridRowRenderer = function() {
 };
 
 
@@ -24,8 +23,8 @@ clover.ui.scaffolding.AbstractLayoutRenderer = function() {
  * by this renderer.
  * @type {string}
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.CSS_CLASS =
-    goog.getCssName('clover-layout');
+clover.ui.scaffolding.AbstractGridRowRenderer.CSS_CLASS =
+    goog.getCssName('clover-grid-row');
 
 
 /**
@@ -35,33 +34,20 @@ clover.ui.scaffolding.AbstractLayoutRenderer.CSS_CLASS =
  * renderer classes are expected to share the same CSS class name.
  * @return {string} Renderer-specific CSS class name.
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.getCssClass =
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.getCssClass =
     function() {
-  return clover.ui.scaffolding.AbstractLayoutRenderer.CSS_CLASS;
+  return clover.ui.scaffolding.AbstractGridRowRenderer.CSS_CLASS;
 };
 
 
 /**
- * Returns the DOM element into which child components are to be rendered,
- * or null if the layout hasn't been rendered yet.
- * @param {Element} element Root element of the layout whose content element
- *     is to be returned.
- * @return {Element} Element to contain child elements (null if none).
+ * Returns the gridRow's with the renderer's own CSS class.
+ * @param {clover.ui.AbstractGridRow} gridRow GridRow to render.
+ * @return {Element} Root element for the gridRow.
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.getContentElement =
-    function(element) {
-  return element;
-};
-
-
-/**
- * Returns the layout's with the renderer's own CSS class.
- * @param {clover.ui.AbstractLayout} layout Layout to render.
- * @return {Element} Root element for the layout.
- */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.createDom = function(
-    layout) {
-  var element = layout.getDomHelper().createDom('div', this.getCssClass());
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.createDom = function(
+    gridRow) {
+  var element = gridRow.getDomHelper().createDom('div', this.getCssClass());
   return element;
 };
 
@@ -72,7 +58,7 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.createDom = function(
  * @param {Element} element Element to decorate.
  * @return {boolean} Whether the renderer can decorate the element.
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.canDecorate =
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.canDecorate =
     function(element) {
   return true;
 };
@@ -80,41 +66,41 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.canDecorate =
 
 /**
  * Default implementation of {@code decorate} for
- * {@link clover.ui.scaffolding.Layout}s. Initializes the layout's ID, its CSS
+ * {@link clover.ui.scaffolding.GridRow}s. Initializes the gridRow's ID, its CSS
  * classes, respectively.  Returns the element.
- * @param {clover.ui.scaffolding.AbstractLayout} layout Layout instance to
+ * @param {clover.ui.scaffolding.AbstractGridRow} gridRow GridRow instance to
  *    decorate the element.
  * @param {Element} element Element to decorate.
  * @return {Element} Decorated element.
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.decorate =
-    function(layout, element) {
-  // Set the layout's ID to the decorated element's DOM ID, if any.
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.decorate =
+    function(gridRow, element) {
+  // Set the gridRow's ID to the decorated element's DOM ID, if any.
   if (element.id) {
-    layout.setId(element.id);
+    gridRow.setId(element.id);
   }
 
   // Decorate the element's children, if applicable.  This should happen after
-  // the layout's own state has been initialized, since how children are
-  // decorated may depend on the state of the layout.
-  this.decorateChildren(layout, element);
+  // the gridRow's own state has been initialized, since how children are
+  // decorated may depend on the state of the gridRow.
+  this.decorateChildren(gridRow, element);
   return element;
 };
 
 
 /**
- * Takes a layout and an element that may contain child elements, decorates
- * the child elements, and adds the corresponding components to the layout
+ * Takes a gridRow and an element that may contain child elements, decorates
+ * the child elements, and adds the corresponding components to the gridRow
  * as child components.  Any non-element child nodes (e.g. empty text nodes
  * introduced by line breaks in the HTML source) are removed from the element.
- * @param {clover.ui.scaffolding.AbstractLayoutRenderer} layout Layout whose
+ * @param {clover.ui.scaffolding.AbstractGridRowRenderer} gridRow GridRow whose
  *    children are to be discovered.
  * @param {Element} element Element whose children are to be decorated.
  * @param {Element=} opt_firstChild the first child to be decorated.
  * @suppress {visibility} setElementInternal
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.decorateChildren =
-    function(layout, element, opt_firstChild) {
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.decorateChildren =
+    function(gridRow, element, opt_firstChild) {
   if (element) {
     var node = opt_firstChild || element.firstChild, next;
     // Tag soup HTML may result in a DOM where siblings have different parents.
@@ -127,7 +113,7 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.decorateChildren =
         if (child) {
           // addChild() may need to look at the element.
           child.setElementInternal(/** @type {Element} */(node));
-          layout.addChild(child);
+          gridRow.addChild(child);
           child.decorate(/** @type {Element} */(node));
         }
       } else if (!node.nodeValue || goog.string.trim(node.nodeValue) == '') {
@@ -143,7 +129,7 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.decorateChildren =
 
 /**
  * Inspects the element, and creates an instance of
- * {@link clover.ui.scaffolding.AbstractLayoutRenderer} or an appropriate
+ * {@link clover.ui.scaffolding.AbstractGridRowRenderer} or an appropriate
  * subclass best suited to decorate it.  Returns the control (or null if no
  * suitable class was found).  This default implementation uses the element's
  * CSS class to find the appropriate control class to instantiate.
@@ -152,7 +138,7 @@ clover.ui.scaffolding.AbstractLayoutRenderer.prototype.decorateChildren =
  * @return {?clover.ui.scaffolding.AbstractGridRow} A new control suitable to
  *    decorate the element (null if none).
  */
-clover.ui.scaffolding.AbstractLayoutRenderer.prototype.getDecoratorForChild =
+clover.ui.scaffolding.AbstractGridRowRenderer.prototype.getDecoratorForChild =
     function(element) {
   return (/** @type {goog.ui.Control} */
       goog.ui.registry.getDecorator(element));
