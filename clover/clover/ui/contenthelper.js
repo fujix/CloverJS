@@ -35,17 +35,18 @@
  * <ul>
  *   <li> componentHelper.getContent(content_name) => content
  *   <li> componentHelper.getContentElement(content_name) => element
- *   <li> componentHelper.setContent(content_name, content)
- *   <li> componentHelper.setContentInternal(content_name, content)
+ *   <li> componentHelper.setContent(content, content_name)
+ *   <li> componentHelper.setContentInternal(content, content_name)
  * </ul>
- * <li> Renderer class
+ * <li> Renderer content helper
  * <ul>
- *   <li> rendererHelper.getContentElement(content_name, element) => element
- *   <li> rendererHelper.setContent(content_name, element, content)
+ *   <li> rendererHelper.getContentElement(element, content_name) => element
+ *   <li> rendererHelper.setContent(element, content, content_name)
  * </ul>
  * </ul>
  *
- * Additinary you should override your component and renderer.
+ * Additinary you should override your component and renderer or give true to
+ * 2nd parameter of helper's constructor.
  * @author orga.chem.job@gmail.com (Orga Chem)
  */
 
@@ -78,7 +79,6 @@ goog.require('goog.Disposable');
  */
 clover.ui.ComponentContentHelper = function(component, opt_allowOverride) {
   goog.base(this);
-  debugger;
 
   if (component.getContent) {
     this.getContent_ = goog.bind(component.getContent, component);
@@ -140,8 +140,7 @@ clover.ui.ComponentContentHelper.prototype.getContent_ = function() {
  * @return {Element} Element to contain child elements (null if none).
  * @private
  */
-clover.ui.ComponentContentHelper.prototype.getContentElement_ = function(
-    opt_contentName) {
+clover.ui.ComponentContentHelper.prototype.getContentElement_ = function() {
   var renderer = this.getRenderer();
   var element = this.getElement();
   var contentElement = renderer.getContentElement(element);
@@ -155,8 +154,7 @@ clover.ui.ComponentContentHelper.prototype.getContentElement_ = function(
  *     structure to set as the component's contents.
  * @private
  */
-clover.ui.ComponentContentHelper.prototype.setContent_ = function(content,
-    opt_contentName) {
+clover.ui.ComponentContentHelper.prototype.setContent_ = function(content) {
   var renderer = this.getRenderer();
   var element = this.getElement();
   renderer.setContent(element, content);
@@ -171,7 +169,7 @@ clover.ui.ComponentContentHelper.prototype.setContent_ = function(content,
  * @private
  */
 clover.ui.ComponentContentHelper.prototype.setContentInternal_ = function(
-    content, opt_contentName) {
+    content) {
   this.content_ = content;
 };
 
@@ -207,9 +205,7 @@ clover.ui.ComponentContentHelper.prototype.getRenderer = function() {
  * @protected
  */
 clover.ui.ComponentContentHelper.prototype.getElement = function() {
-  var element = this.component_.getElement();
-  debugger;
-  return element;
+  return this.component_.getElement();
 };
 
 
@@ -246,7 +242,8 @@ clover.ui.ComponentContentHelper.prototype.getContent = function(
 clover.ui.ComponentContentHelper.prototype.getContentElement = function(
     opt_contentName) {
   if (opt_contentName) {
-    return this.getRenderer().getContentElement(this.getElement(), opt_contentName);
+    return this.getRenderer().getContentElement(
+        this.getElement(), opt_contentName);
   } else {
     return this.getContentElement_.call(this.component_, opt_contentName);
   }
@@ -388,6 +385,8 @@ clover.ui.RendererContentHelper.prototype.contentElementGetterMap_ = null;
 
 /**
  * Borrowed method from given renderer.
+ * @param {Element} element Root element of the control whose content element
+ *     is to be returned.
  * @return {Element} Element to contain child elements (null if none).
  * @private
  */
@@ -399,6 +398,7 @@ clover.ui.RendererContentHelper.prototype.getContentElement_ = function(
 
 /**
  * Borrowed method from given renderer.
+ * @param {Element} element The control's root element.
  * @param {Array|Node|NodeList|string|null} content Text caption or DOM
  *     structure to set as the renderer's contents.
  * @private

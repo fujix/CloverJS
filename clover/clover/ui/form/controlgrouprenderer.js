@@ -8,6 +8,7 @@
 
 goog.provide('clover.ui.form.ControlGroupRenderer');
 
+goog.require('clover.ui.RendererContentHelper');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
 goog.require('goog.dom.a11y');
@@ -21,6 +22,22 @@ goog.require('goog.ui.ControlRenderer');
  */
 clover.ui.form.ControlGroupRenderer = function() {
   goog.base(this);
+  // TODO: Mixin support
+  // This style's constructing is slowly. Because it override methods when
+  // constructing.
+  this.helper_ = new clover.ui.RendererContentHelper(this, true);
+  this.helper_.addContentElementGetter(
+      this.labelKey, this.getLabelContentElement);
+  this.helper_.addContentElementGetter(
+      this.blockHelpKey, this.getBlockHelpContentElement);
+  this.helper_.addContentElementGetter(
+      this.inlineHelpKey, this.getInlineHelpContentElement);
+  this.helper_.addContentSetter(
+      this.labelKey, this.setLabelContent);
+  this.helper_.addContentSetter(
+      this.blockHelpKey, this.setBlockHelpContent);
+  this.helper_.addContentSetter(
+      this.inlineHelpKey, this.setInlineHelpContent);
 };
 goog.inherits(clover.ui.form.ControlGroupRenderer, goog.ui.ControlRenderer);
 goog.addSingletonGetter(clover.ui.form.ControlGroupRenderer);
@@ -32,6 +49,27 @@ goog.addSingletonGetter(clover.ui.form.ControlGroupRenderer);
  * @type {string}
  */
 clover.ui.form.ControlGroupRenderer.CSS_CLASS = goog.getCssName('clover-input');
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+clover.ui.form.ControlGroupRenderer.prototype.labelKey = 'label';
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+clover.ui.form.ControlGroupRenderer.prototype.inlineHelpKey = 'inlinehelp';
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+clover.ui.form.ControlGroupRenderer.prototype.blockHelpKey = 'blockhelp';
 
 
 /** 
@@ -112,22 +150,23 @@ clover.ui.form.ControlGroupRenderer.prototype.decorate = function(
     component, element) {
   var dom = component.getDomHelper();
   goog.dom.classes.add(element, this.getCssClass());
-  var label = this.getLabelContentElement(element);
+  var label = this.getContentElement(element, this.labelKey);
   goog.dom.classes.add(label, this.getLabelClass());
-  if (label) component.setLabelContent(label);
+  if (label) component.setContentInternal(label.childNodes, this.labelKey);
 
-  var inlineHelp = this.getInlineHelpContentElement(element);
+  var inlineHelp = this.getContentElement(element, this.inlineHelpKey);
   if (inlineHelp) {
-    component.setInlineHelpContent(goog.dom.getChildren(inlineHelp));
+    component.setContentInternal(inlineHelp.childNodes, this.inlineHelpKey);
   }
 
-  var blockHelp = this.getBlockHelpContentElement(element);
+  var blockHelp = this.getContentElement(element, this.blockHelpKey);
   if (blockHelp) {
-    component.setBlockHelpContent(goog.dom.getChildren(blockHelp));
+    component.setContentInternal(blockHelp.childNodes, this.blockHelpKey);
   }
 
-  var content = this.getContentElement(element);
-  goog.dom.classes.add(content, this.getContentClass());
+  var contentElement = this.getContentElement(element);
+  if (contentElement) goog.dom.classes.add(
+      contentElement, this.getContentClass());
 
   return goog.base(this, 'decorate', component, element);
 };
@@ -140,14 +179,13 @@ clover.ui.form.ControlGroupRenderer.prototype.decorate = function(
  * element's CSS class to find the appropriate control class to instantiate.
  * May be overridden in subclasses.
  * @param {Element} element Element to decorate.
- * @return {clover.ui.form.Control?} A new control suitable to decorate the
+ * @return {clover.ui.form.ControlGroup?} A new control suitable to decorate the
  *     element (null if none).
  * @override
  */
 clover.ui.form.ControlGroupRenderer.prototype.getDecoratorForChild = function(
     ) {
-  return (/** @type {clover.ui.form.Control} */
-      goog.ui.registry.getDecorator(element));
+  return null; //goog.ui.registry.getDecorator(element);
 };
 
 
@@ -179,7 +217,7 @@ clover.ui.form.ControlGroupRenderer.prototype.getLabelContentElement = function(
  */
 clover.ui.form.ControlGroupRenderer.prototype.setLabelContent = function(
     element, content) {
-  goog.dom.append(element, content);
+  if (content) goog.dom.append(element, content);
 };
 
 
@@ -213,8 +251,8 @@ clover.ui.form.ControlGroupRenderer.prototype.getBlockHelpContentElement =
  */
 clover.ui.form.ControlGroupRenderer.prototype.setBlockHelpContent = function(
     element, content) {
-  var contentElement = this.getBlockHelpContentElement(element);
-  goog.dom.append(contentElement, content);
+  var contentElement = this.getContentElement(element, this.blockHelpKey);
+  if (content) goog.dom.append(contentElement, content);
 };
 
 
@@ -238,7 +276,7 @@ clover.ui.form.ControlGroupRenderer.prototype.getInlineHelpContentElement =
  */
 clover.ui.form.ControlGroupRenderer.prototype.setInlineHelpContent = function(
     element, content) {
-  var contentElement = this.getInlineHelpContentElement(element);
+  var contentElement = this.getContentElement(element, this.inlineHelpKey);
   goog.dom.append(contentElement, content);
 };
 
@@ -320,52 +358,49 @@ clover.ui.form.ControlGroupRenderer.prototype.setConfirmed = function(
 
 /**
  * Sets a block content of help for the input.
- * @param {clover.ui.form.ControlGroup} component An input component to add the
- *     help.
+ * @param {Element} element A root element of component.
  * @param {clover.ui.form.BlockHelpContent} content The block content of help
  *     for input.
  */
 clover.ui.form.ControlGroupRenderer.prototype.setBlockHelpContent = function(
-    component, content) {
-  var dom = component.getDomHelper();
-  var element = component.getBlockHelpContentElement();
+    element, content) {
+  var dom = goog.dom.getDomHelper(element);
+  var helpContentElement = this.getContentElement(element, this.blockHelpKey);
   if (content) {
-    if (element) {
-      dom.removeChildren(element);
-      dom.append(element, content);
+    if (helpContentElement) {
+      dom.removeChildren(helpContentElement);
+      dom.append(helpContentElement, content);
     } else {
-      element = this.createBlockHelpContentElement(dom, content);
-      dom.append(component.getContentElement(), element);
-      component.setBlockHelpContentElement(element);
+      helpContentElement = this.createBlockHelpContentElement(dom, content);
+      dom.append(this.getContentElement(element), helpContentElement);
     }
-  } else if (element) {
-    dom.removeNode(element)
+  } else if (helpContentElement) {
+    dom.removeNode(helpContentElement)
   }
 };
 
 
 /**
  * Sets a inline content of help for the input.
- * @param {clover.ui.form.ControlGroup} component An input component to add the
- *     help.
+ * @param {Element} element A root element of component.
  * @param {clover.ui.form.InlineHelpContent} content The inline content of help
  *     for input.
  */
 clover.ui.form.ControlGroupRenderer.prototype.setInlineHelpContent = function(
-    component, content) {
-  var dom = component.getDomHelper();
-  var element = component.getInlineHelpContentElement();
+    element, content) {
+  var dom = goog.dom.getDomHelper(element);
+  var helpContentElement = this.getContentElement(element, this.inlineHelpKey);
   if (content) {
-    if (element) {
-      dom.removeChildren(element);
-      dom.append(element, content);
+    if (helpContentElement) {
+      dom.removeChildren(helpContentElement);
+      dom.append(helpContentElement, content);
     } else {
-      element = this.createInlineHelpContentElement(dom, content);
-      dom.insertChildAt(component.getContentElement(), element, 2);
-      component.setInlineHelpContentElement(element);
+      helpContentElement = this.createInlineHelpContentElement(dom, content);
+      // TODO: avoid hard-coding
+      dom.insertChildAt(this.getContentElement(element), helpContentElement, 2);
     }
-  } else if (element) {
-    dom.removeNode(element)
+  } else if (helpContentElement) {
+    dom.removeNode(helpContentElement)
   }
 };
 

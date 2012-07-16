@@ -8,6 +8,8 @@
 
 goog.provide('clover.ui.form.ControlGroup');
 
+goog.require('clover.ui.ComponentContentHelper');
+goog.require('clover.ui.form.ControlGroupRenderer');
 goog.require('goog.events.EventHandler');
 goog.require('goog.ui.Control');
 goog.require('goog.ui.FormPost');
@@ -32,10 +34,12 @@ goog.require('goog.ui.registry');
  */
 clover.ui.form.ControlGroup = function(opt_label, opt_help, opt_format,
     opt_renderer, opt_domHelper) {
-  goog.base(this, null, opt_renderer, opt_domHelper);
+  goog.base(this, null, opt_renderer ||
+      goog.ui.registry.getDefaultRenderer(this.constructor), opt_domHelper);
   this.helper_ = new clover.ui.ComponentContentHelper(this, true);
-  this.setLabelContent(opt_label || '');
-  this.setBlockHelpContent(opt_help);
+  this.setContentInternal(opt_label || '', this.labelKey);
+  this.setContentInternal(opt_help, this.blockHelpKey);
+
 };
 goog.inherits(clover.ui.form.ControlGroup, goog.ui.Control);
 
@@ -62,27 +66,24 @@ clover.ui.form.ControlGroup.prototype.controlGroupState_ =
 
 
 /**
- * Content of label for the control group.
  * @type {string}
- * @private
+ * @protected
  */
-clover.ui.form.ControlGroup.prototype.label_ = null;
+clover.ui.form.ControlGroup.prototype.labelKey = 'label';
 
 
 /**
- * Content of block help for an input in the control group.
  * @type {string}
- * @private
+ * @protected
  */
-clover.ui.form.ControlGroup.prototype.blockHelp_ = null;
+clover.ui.form.ControlGroup.prototype.inlineHelpKey = 'inlinehelp';
 
 
 /**
- * Content of inline help for an input in the control group.
  * @type {string}
- * @private
+ * @protected
  */
-clover.ui.form.ControlGroup.prototype.inlineHelp_ = null;
+clover.ui.form.ControlGroup.prototype.blockHelpKey = 'blockhelp';
 
 
 /**
@@ -118,7 +119,7 @@ clover.ui.form.ControlGroup.prototype.validated_ = false;
  * @return {Element} The input label element.
  */
 clover.ui.form.ControlGroup.prototype.getLabelContentElement = function() {
-  return this.getRenderer().getLabelContentElement(this.getElement());
+  return this.getContentElement(this.labelKey);
 };
 
 
@@ -127,7 +128,7 @@ clover.ui.form.ControlGroup.prototype.getLabelContentElement = function() {
  * @return {clover.ui.form.LabelContent} The input label.
  */
 clover.ui.form.ControlGroup.prototype.getLabelContent = function() {
-  return this.label_;
+  return this.getContent(this.labelKey);
 };
 
 
@@ -136,7 +137,7 @@ clover.ui.form.ControlGroup.prototype.getLabelContent = function() {
  * @param {clover.ui.form.LabelContent} content The input label content.
  */
 clover.ui.form.ControlGroup.prototype.setLabelContent = function(content) {
-  this.label_ = content;
+  this.setContent(content, this.labelKey);
 };
 
 
@@ -145,7 +146,7 @@ clover.ui.form.ControlGroup.prototype.setLabelContent = function(content) {
  * @return {Element} The element of inline help.
  */
 clover.ui.form.ControlGroup.prototype.getBlockHelpContentElement = function() {
-  return this.getRenderer().getBlockHelpContentElement(this.getElement());
+  return this.getContentElement(this.blockHelpKey);
 };
 
 
@@ -154,7 +155,7 @@ clover.ui.form.ControlGroup.prototype.getBlockHelpContentElement = function() {
  * @return {clover.ui.form.BlockHelpContent} The content of help for the input.
  */
 clover.ui.form.ControlGroup.prototype.getBlockHelpContent = function() {
-  return this.blockHelp_;
+  return this.getContent(this.blockHelpKey);
 };
 
 
@@ -164,7 +165,7 @@ clover.ui.form.ControlGroup.prototype.getBlockHelpContent = function() {
  *     the input.
  */
 clover.ui.form.ControlGroup.prototype.setBlockHelpContent = function(content) {
-  this.blockHelp_ = content;
+  this.setContent(content, this.blockHelpKey);
 };
 
 
@@ -173,7 +174,7 @@ clover.ui.form.ControlGroup.prototype.setBlockHelpContent = function(content) {
  * @return {Element} The element of inline help.
  */
 clover.ui.form.ControlGroup.prototype.getInlineHelpContentElement = function() {
-  return this.getRenderer().getInlineHelpContentElement(this.getElement());
+  return this.getContentElement(this.inlineHelpKey);
 };
 
 
@@ -182,7 +183,7 @@ clover.ui.form.ControlGroup.prototype.getInlineHelpContentElement = function() {
  * @return {clover.ui.form.InlineHelpContent} The content of help for the input.
  */
 clover.ui.form.ControlGroup.prototype.getInlineHelpContent = function() {
-  return this.inlineHelp_;
+  return this.getContent(this.inlineHelpKey);
 };
 
 
@@ -192,7 +193,7 @@ clover.ui.form.ControlGroup.prototype.getInlineHelpContent = function() {
  *     the input.
  */
 clover.ui.form.ControlGroup.prototype.setInlineHelpContent = function(content) {
-  this.inlineHelp_ = content;
+  this.setContent(content, this.inlineHelpKey);
 };
 
 
@@ -282,3 +283,7 @@ clover.ui.form.ControlGroup.prototype.setControlGroupState = function(state) {
   this.controlGroupState_ = state;
   this.getRenderer().setControlGroupState(this, state);
 };
+
+
+goog.ui.registry.setDefaultRenderer(
+    clover.ui.form.ControlGroup, clover.ui.form.ControlGroupRenderer);

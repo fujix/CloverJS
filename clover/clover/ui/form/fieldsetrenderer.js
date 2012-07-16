@@ -82,6 +82,7 @@ clover.ui.form.FieldSetRenderer.prototype.canDecorate = function(element) {
  */
 clover.ui.form.FieldSetRenderer.prototype.decorate = function(
     component, element) {
+  var result = goog.base(this, 'decorate', component, element);
   var dom = component.getDomHelper();
   goog.dom.classes.add(element, this.getCssClass());
   var legend = this.getContentElement(element, 'legend');
@@ -89,7 +90,7 @@ clover.ui.form.FieldSetRenderer.prototype.decorate = function(
     // TODO: remove childNodes access
     component.setContentInternal(legend.childNodes, 'legend');
   }
-  return goog.base(this, 'decorate', component, element);
+  return result;
 };
 
 
