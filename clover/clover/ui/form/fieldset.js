@@ -9,6 +9,7 @@
 goog.provide('clover.ui.form.FieldSet');
 
 goog.require('clover.ui.ComponentContentHelper');
+goog.require('clover.ui.ComponentToRendererSystem');
 goog.require('clover.ui.form.FieldSetRenderer');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.registry');
@@ -26,16 +27,24 @@ goog.require('goog.ui.registry');
  * @param {?goog.dom.DomHelper=} opt_domHelper DOM helper, used for document
  *     interaction.
  * @constructor
- * @extends {goog.ui.Container}
+ * @extends {goog.ui.Component}
  */
 clover.ui.form.FieldSet = function(opt_legend, opt_renderer, opt_domHelper) {
-  goog.base(this, goog.ui.Container.Orientation.VERTICAL, opt_renderer ||
-      goog.ui.registry.getDefaultRenderer(this.constructor), opt_domHelper);
+  goog.base(this, opt_domHelper);
+  clover.ui.ComponentToRendererSystem.initializeMixin(this, opt_renderer);
 
   this.helper_ = new clover.ui.ComponentContentHelper(this, true);
-  this.setContentInternal(opt_legend, 'legend');
+  this.setContentInternal(opt_legend, this.legendKey);
 };
-goog.inherits(clover.ui.form.FieldSet, goog.ui.Container);
+goog.inherits(clover.ui.form.FieldSet, goog.ui.Component);
+clover.ui.ComponentToRendererSystem.mixin(clover.ui.form.FieldSet);
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+clover.ui.form.FieldSet.prototype.legendKey = 'legend';
 
 
 /** @override */
@@ -48,7 +57,7 @@ clover.ui.form.FieldSet.prototype.isFocusable = function() {
  * @param {clover.ui.form.LegendContent} content Content to render.
  */
 clover.ui.form.FieldSet.prototype.setLegendContent = function(content) {
-  this.setContent(content, 'legend');
+  this.setContent(content, this.legendKey);
 };
 
 
@@ -56,7 +65,7 @@ clover.ui.form.FieldSet.prototype.setLegendContent = function(content) {
  * @param {clover.ui.form.LegendContent} content Content to render.
  */
 clover.ui.form.FieldSet.prototype.getLegendContent = function(content) {
-  var content = this.getContent('legend')
+  var content = this.getContent(this.legendKey)
   return content;
 };
 
@@ -120,6 +129,13 @@ clover.ui.form.FieldSet.prototype.setValid = function(valid) {
   this.forEachChild(function(child) {
     if (child.setValid) child.isSetValid(valid);
   });
+};
+
+
+/** @override */
+clover.ui.form.FieldSet.prototype.disposeInternal = function() {
+  goog.base(this, 'disposeInternal');
+  clover.ui.ComponentToRendererSystem.disposeMixin(this);
 };
 
 

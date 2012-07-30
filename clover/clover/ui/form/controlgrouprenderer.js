@@ -13,15 +13,12 @@ goog.require('goog.dom');
 goog.require('goog.dom.TagName');
 goog.require('goog.dom.a11y');
 goog.require('goog.dom.classes');
-goog.require('goog.ui.ControlRenderer');
 
 
 /**
  * @constructor
- * @extends {goog.ui.ControlRenderer}
  */
 clover.ui.form.ControlGroupRenderer = function() {
-  goog.base(this);
   // TODO: Mixin support
   // This style's constructing is slowly. Because it override methods when
   // constructing.
@@ -39,7 +36,6 @@ clover.ui.form.ControlGroupRenderer = function() {
   this.helper_.addContentSetter(
       this.inlineHelpKey, this.setInlineHelpContent);
 };
-goog.inherits(clover.ui.form.ControlGroupRenderer, goog.ui.ControlRenderer);
 goog.addSingletonGetter(clover.ui.form.ControlGroupRenderer);
 
 
@@ -117,9 +113,24 @@ clover.ui.form.ControlGroupRenderer.prototype.getContentClass = function() {
 };
 
 
-/** @override */
+/**
+ * Returns the CSS class to be applied to the root element of the component
+ * rendered using this renderer.
+ * @return {string} Renderer-specific CSS class.
+ */
 clover.ui.form.ControlGroupRenderer.prototype.getCssClass = function() {
   return clover.ui.form.ControlGroupRenderer.CSS_CLASS;
+};
+
+
+/**
+ * Default implementation of {@code canDecorate}; returns true if the element
+ * is a DIV, false otherwise.
+ * @param {Element} element Element to decorate.
+ * @return {boolean} Whether the renderer can decorate the element.
+ */
+clover.ui.form.ControlGroupRenderer.prototype.canDecorate = function(element) {
+  return element.tagName === goog.dom.TagName.DIV;
 };
 
 
@@ -185,7 +196,7 @@ clover.ui.form.ControlGroupRenderer.prototype.decorate = function(
  */
 clover.ui.form.ControlGroupRenderer.prototype.getDecoratorForChild = function(
     ) {
-  return null; //goog.ui.registry.getDecorator(element);
+  return goog.ui.registry.getDecorator(element);
 };
 
 

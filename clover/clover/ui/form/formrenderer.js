@@ -8,12 +8,12 @@
 
 goog.provide('clover.ui.form.FormRenderer');
 
+goog.require('clover.ui.RendererContentHelper');
 goog.require('clover.ui.form.FieldSet');
 goog.require('goog.array');
 goog.require('goog.dom.TagName');
 goog.require('goog.dom.classes');
 goog.require('goog.object');
-goog.require('goog.ui.ContainerRenderer');
 goog.require('goog.ui.registry');
 
 
@@ -23,9 +23,8 @@ goog.require('goog.ui.registry');
  * @extends {goog.ui.ContainerRenderer}
  */
 clover.ui.form.FormRenderer = function() {
-  goog.base(this);
+  this.helper = new clover.ui.RendererContentHelper(this, true);
 };
-goog.inherits(clover.ui.form.FormRenderer, goog.ui.ContainerRenderer);
 goog.addSingletonGetter(clover.ui.form.FormRenderer);
 
 
@@ -173,8 +172,29 @@ clover.ui.form.FormRenderer.prototype.canDecorate = function(element) {
 };
 
 
-/** @override */
+/**
+ * Default implementation of {@code decorate} for {@link goog.ui.Component}s.
+ * Decorates the element with the component, and attempts to decorate its child
+ * elements.  Returns the decorated element.
+ * @param {goog.ui.Component} component Component to decorate the element.
+ * @param {Element} element Element to decorate.
+ * @return {Element} Decorated element.
+ */
 clover.ui.form.FormRenderer.prototype.decorate = function(component, element) {
+  // Set the component's ID to the decorated element's DOM ID, if any.
+  if (element.id) {
+    component.setId(element.id);
+  }
+
+  // Configure the component's state based on the CSS class names it has.
+  var baseClass = this.getCssClass();
+  var hasBaseClass = false;
+
+  if (!hasBaseClass) {
+    // Make sure the component's root element has the renderer's own CSS class.
+    goog.dom.classes.add(element, baseClass);
+  }
+
   var classNames = goog.dom.classes.get(element);
   if (classNames) {
     goog.array.some(classNames, function(cssClass) {
@@ -185,22 +205,60 @@ clover.ui.form.FormRenderer.prototype.decorate = function(component, element) {
       }
     }, this);
   }
-  return goog.base(this, 'decorate', component, element);
+
+  // Decorate the element's children, if applicable.  This should happen after
+  // the component's own state has been initialized, since how children are
+  // decorated may depend on the state of the component.
+  this.decorateChildren(component, this.getContentElement(element));
+  return element;
+};
+
+
+/**
+ * Takes a component and an element that may contain child elements, decorates
+ * the child elements, and adds the corresponding components to the component
+ * as child components.  Any non-element child nodes (e.g. empty text nodes
+ * introduced by line breaks in the HTML source) are removed from the element.
+ * @param {goog.ui.Container} component Container whose children are to be
+ *     discovered.
+ * @param {Element} element Element whose children are to be decorated.
+ * @param {Element=} opt_firstChild the first child to be decorated.
+ * @suppress {visibility} setElementInternal
+ */
+clover.ui.form.FormRenderer.prototype.decorateChildren = function(component,
+    element, opt_firstChild) {
+  if (element) {
+    var node = opt_firstChild || element.firstChild, next;
+    // Tag soup HTML may result in a DOM where siblings have different parents.
+    while (node && node.parentNode == element) {
+      // Get the next sibling here, since the node may be replaced or removed.
+      next = node.nextSibling;
+      if (node.nodeType == goog.dom.NodeType.ELEMENT) {
+        // Decorate element node.
+        var child = this.getDecoratorForChild(/** @type {Element} */(node));
+        if (child) {
+          // addChild() may need to look at the element.
+          child.setElementInternal(/** @type {Element} */(node));
+          // If the component is disabled, mark the child disabled too.  See
+          // bug 1263729.  Note that this must precede the call to addChild().
+          if (!component.isEnabled()) {
+            child.setEnabled(false);
+          }
+          component.addChild(child);
+          child.decorate(/** @type {Element} */(node));
+        }
+      } else if (!node.nodeValue || goog.string.trim(node.nodeValue) == '') {
+        // Remove empty text node, otherwise madness ensues (e.g. controls that
+        // use goog-inline-block will flicker and shift on hover on Gecko).
+        element.removeChild(node);
+      }
+      node = next;
+    }
+  }
 };
 
 
 /** @override */
 clover.ui.form.FormRenderer.prototype.getDecoratorForChild = function(element) {
-  var Ctor = this.defultRenderer;
-  if (Ctor) return new Ctor();
-  console.log(Ctor);
-  return goog.base(this, 'getDecoratorForChild', element);
+  return goog.ui.registry.getDefaultRenderer(element);
 };
-
-
-/**
- * A default renderer for form children.
- * Sets null, if you need to get your decorator by the class.
- * @type {?clover.ui.form.FieldSet}
- */
-clover.ui.form.FormRenderer.prototype.defultRenderer = clover.ui.form.FieldSet;

@@ -17,15 +17,13 @@ goog.require('goog.ui.ContainerRenderer');
 
 /**
  * @constructor
- * @extends {goog.ui.ControlRenderer}
  */
 clover.ui.form.FieldSetRenderer = function() {
-  goog.base(this);
   this.helper_ = new clover.ui.RendererContentHelper(this, true);
-  this.helper_.addContentSetter('legend', this.setLegendContent);
-  this.helper_.addContentElementGetter('legend', this.getLegendContentElement);
+  this.helper_.addContentSetter(this.legendKey, this.setLegendContent);
+  this.helper_.addContentElementGetter(
+      this.legendKey, this.getLegendContentElement);
 };
-goog.inherits(clover.ui.form.FieldSetRenderer, goog.ui.ContainerRenderer);
 goog.addSingletonGetter(clover.ui.form.FieldSetRenderer);
 
 
@@ -35,6 +33,13 @@ goog.addSingletonGetter(clover.ui.form.FieldSetRenderer);
  * @type {string}
  */
 clover.ui.form.FieldSetRenderer.CSS_CLASS = goog.getCssName('clover-fieldset');
+
+
+/**
+ * @type {string}
+ * @protected
+ */
+clover.ui.form.FieldSetRenderer.prototype.legendKey = 'legend';
 
 
 /**
@@ -48,13 +53,22 @@ clover.ui.form.FieldSetRenderer.prototype.getLegendClass = function() {
 };
 
 
-/** @override */
+/**
+ * Returns the CSS class to be applied to the root element of the component
+ * rendered using this renderer.
+ * @return {string} Renderer-specific CSS class.
+ */
 clover.ui.form.FieldSetRenderer.prototype.getCssClass = function() {
   return clover.ui.form.FieldSetRenderer.CSS_CLASS;
 };
 
 
-/** @override */
+/**
+ * Default implementation of {@code canDecorate}; returns true if the element
+ * is a DIV, false otherwise.
+ * @param {Element} element Element to decorate.
+ * @return {boolean} Whether the renderer can decorate the element.
+ */
 clover.ui.form.FieldSetRenderer.prototype.canDecorate = function(element) {
   return element.tagName === goog.dom.TagName.FIELDSET;
 };
@@ -85,10 +99,10 @@ clover.ui.form.FieldSetRenderer.prototype.decorate = function(
   var result = goog.base(this, 'decorate', component, element);
   var dom = component.getDomHelper();
   goog.dom.classes.add(element, this.getCssClass());
-  var legend = this.getContentElement(element, 'legend');
+  var legend = this.getContentElement(element, this.legendKey);
   if (legend) {
     // TODO: remove childNodes access
-    component.setContentInternal(legend.childNodes, 'legend');
+    component.setContentInternal(legend.childNodes, this.legendKey);
   }
   return result;
 };
@@ -104,7 +118,7 @@ clover.ui.form.FieldSetRenderer.prototype.decorate = function(
 clover.ui.form.FieldSetRenderer.prototype.setLegendContent = function(
     element, content) {
   var dom = goog.dom.getDomHelper(element);
-  var contentElement = this.getContentElement(element, 'legend');
+  var contentElement = this.getContentElement(element, this.legendKey);
   if (content) {
     if (contentElement) {
       dom.removeChildren(contentElement);
@@ -137,14 +151,14 @@ clover.ui.form.FieldSetRenderer.prototype.getLegendContentElement = function(
 clover.ui.form.FieldSetRenderer.prototype.createDom = function(
     component) {
   var dom = component.getDomHelper();
-  var legendContent = component.getContent('legend');
+  var legendContent = component.getContent(this.legendKey);
   if (legendContent) {
     var legend = this.createLegend(legendContent, dom);
   }
   var element = dom.createDom(
       /* tag name    */ goog.dom.TagName.FIELDSET,
       /* attributes? */ this.getClassNames(component).join(' '),
-      /* appendables */ legend, component.getContent('legend'));
+      /* appendables */ legend, component.getContent(this.legendKey));
   return element;
 };
 

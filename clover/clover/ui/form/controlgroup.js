@@ -9,9 +9,10 @@
 goog.provide('clover.ui.form.ControlGroup');
 
 goog.require('clover.ui.ComponentContentHelper');
+goog.require('clover.ui.ComponentToRendererSystem');
 goog.require('clover.ui.form.ControlGroupRenderer');
 goog.require('goog.events.EventHandler');
-goog.require('goog.ui.Control');
+goog.require('goog.ui.Component');
 goog.require('goog.ui.FormPost');
 goog.require('goog.ui.registry');
 
@@ -30,18 +31,18 @@ goog.require('goog.ui.registry');
  * @param {goog.dom.DomHelper=} opt_domHelper DOM helper, used for document
  *     interaction.
  * @constructor
- * @extends {goog.ui.Control}
+ * @extends {goog.ui.Component}
  */
 clover.ui.form.ControlGroup = function(opt_label, opt_help, opt_format,
     opt_renderer, opt_domHelper) {
-  goog.base(this, null, opt_renderer ||
-      goog.ui.registry.getDefaultRenderer(this.constructor), opt_domHelper);
+  goog.base(this, opt_domHelper);
   this.helper_ = new clover.ui.ComponentContentHelper(this, true);
   this.setContentInternal(opt_label || '', this.labelKey);
   this.setContentInternal(opt_help, this.blockHelpKey);
-
+  clover.ui.ComponentToRendererSystem.initializeMixin(this, opt_renderer);
 };
-goog.inherits(clover.ui.form.ControlGroup, goog.ui.Control);
+goog.inherits(clover.ui.form.ControlGroup, goog.ui.Component);
+clover.ui.ComponentToRendererSystem.mixin(clover.ui.form.ControlGroup);
 
 
 /**
@@ -285,5 +286,14 @@ clover.ui.form.ControlGroup.prototype.setControlGroupState = function(state) {
 };
 
 
+/** @override */
+clover.ui.form.ControlGroup.prototype.disposeInternal = function() {
+  goog.base(this, 'disposeInternal');
+  this.helper_.dispose();
+  delete this.helper_;
+  clover.ui.ComponentToRendererSystem.disposeMixin(this);
+};
+
+// Registry
 goog.ui.registry.setDefaultRenderer(
     clover.ui.form.ControlGroup, clover.ui.form.ControlGroupRenderer);
