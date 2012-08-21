@@ -29,8 +29,8 @@ goog.require('goog.ui.registry');
  * @extends {bootstrap.Button}
  */
 clover.ui.button.Button = function(content, opt_renderer, opt_domHelper) {
-  goog.base(this, content, opt_renderer ||
-      goog.ui.registry.getDefaultRenderer(this.constructor), opt_domHelper);
+  goog.base(this, content, /** @type {goog.ui.ButtonRenderer} */ (opt_renderer ||
+	 goog.ui.registry.getDefaultRenderer(this.constructor)), opt_domHelper);
 };
 goog.inherits(clover.ui.button.Button, bootstrap.Button);
 
@@ -46,7 +46,7 @@ clover.ui.button.Button.Size = bootstrap.Button.Size;
  * Button kinds.
  * @enum {string}
  */
-clover.ui.Button.Kind = bootstrap.Button.Kind;
+clover.ui.button.Button.Kind = bootstrap.Button.Kind;
 
 
 goog.ui.registry.setDefaultRenderer(clover.ui.button.Button,

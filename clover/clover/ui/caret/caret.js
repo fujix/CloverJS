@@ -10,7 +10,7 @@ goog.provide('clover.ui.Caret');
 goog.provide('clover.ui.CaretRenderer');
 
 goog.require('goog.ui.Component');
-goog.require('goog.ui.ComponentRenderer');
+/*goog.require('goog.ui.ComponentRenderer');*/
 
 
 
